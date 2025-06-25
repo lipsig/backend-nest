@@ -81,14 +81,20 @@ describe('AppController (e2e)', () => {
     });
 
     describe('GET /produtos', () => {
-      it('should return empty array initially', () => {
+      it('should return empty paginated response initially', () => {
         return request(app.getHttpServer())
           .get('/produtos')
           .expect(200)
-          .expect([]);
+          .expect((res) => {
+            expect(res.body).toEqual({
+              produtos: [],
+              total: 0,
+              pages: 0
+            });
+          });
       });
 
-      it('should return all produtos', async () => {
+      it('should return paginated produtos', async () => {
         await request(app.getHttpServer())
           .post('/produtos')
           .send(validProduto);
@@ -97,8 +103,11 @@ describe('AppController (e2e)', () => {
           .get('/produtos')
           .expect(200)
           .expect((res) => {
-            expect(res.body).toHaveLength(1);
-            expect(res.body[0].name).toBe(validProduto.name);
+            expect(res.body.produtos).toHaveLength(1);
+            expect(res.body.produtos[0].name).toBe(validProduto.name);
+            expect(res.body.produtos[0].category).toBe(validProduto.category.toLowerCase());
+            expect(res.body.total).toBe(1);
+            expect(res.body.pages).toBe(1);
           });
       });
     });
