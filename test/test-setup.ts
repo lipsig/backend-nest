@@ -3,11 +3,18 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 // Increase timeout for database operations
 jest.setTimeout(30000);
 
+let mongod: MongoMemoryServer;
+
 // Global test setup
 beforeAll(async () => {
-  // Any global setup can go here
+  // Start single MongoDB instance for all tests
+  mongod = await MongoMemoryServer.create();
+  process.env.MONGODB_URI = mongod.getUri();
 });
 
 afterAll(async () => {
-  // Global cleanup
+  // Cleanup MongoDB instance
+  if (mongod) {
+    await mongod.stop();
+  }
 });
