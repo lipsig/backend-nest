@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ProdutosModule } from './produtos/produtos.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { MongooseModule } from '@nestjs/mongoose';
         return { uri };
       }
     }),
+    ProdutosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
