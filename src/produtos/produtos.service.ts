@@ -4,13 +4,18 @@ import { Model } from 'mongoose';
 import { Produto } from './schemas/produto.schema';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
+import slugify from 'slugify';
 
 @Injectable()
 export class ProdutosService {
   constructor(@InjectModel(Produto.name) private produtoModel: Model<Produto>) {}
 
   async create(createProdutoDto: CreateProdutoDto): Promise<Produto> {
-    const createdProduto = new this.produtoModel(createProdutoDto);
+    const slug = slugify(createProdutoDto.name, { lower: true });
+    const createdProduto = new this.produtoModel({
+      ...createProdutoDto,
+      slug,
+    });
     return createdProduto.save();
   }
 
@@ -27,8 +32,14 @@ export class ProdutosService {
   }
 
   async update(id: string, updateProdutoDto: UpdateProdutoDto): Promise<Produto> {
+    const updatedData: any = { ...updateProdutoDto };
+
+    if (updateProdutoDto.name) {
+      updatedData.slug = slugify(updateProdutoDto.name, { lower: true });
+    }
+
     const updatedProduto = await this.produtoModel
-      .findByIdAndUpdate(id, updateProdutoDto, { new: true })
+      .findByIdAndUpdate(id, updatedData, { new: true })
       .exec();
 
     if (!updatedProduto) {
