@@ -1,22 +1,25 @@
-import { IsString, IsNotEmpty, IsNumber, IsBoolean, IsOptional, IsPositive, Min, Max } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsBoolean, IsOptional, IsPositive, Min, Max, IsUrl, Length } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateProdutoDto {
-  @IsString()
-  @IsNotEmpty({ message: 'Nome é obrigatório' })
+  @IsString({ message: 'Título deve ser um texto' })
+  @IsNotEmpty({ message: 'Título é obrigatório' })
+  @Length(3, 100, { message: 'Título deve ter entre 3 e 100 caracteres' })
   name: string;
 
-  @IsString()
+  @IsString({ message: 'Descrição deve ser um texto' })
   @IsNotEmpty({ message: 'Descrição é obrigatória' })
+  @Length(10, 500, { message: 'Descrição deve ter entre 10 e 500 caracteres' })
   description: string;
 
   @Transform(({ value }) => parseFloat(value))
-  @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Preço deve ser um número válido' })
+  @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Preço deve ser um número válido com até 2 casas decimais' })
   @IsPositive({ message: 'Preço deve ser positivo' })
   price: number;
 
-  @IsString()
+  @IsString({ message: 'Categoria deve ser um texto' })
   @IsNotEmpty({ message: 'Categoria é obrigatória' })
+  @Length(2, 50, { message: 'Categoria deve ter entre 2 e 50 caracteres' })
   category: string;
 
   @Transform(({ value }) => value === 'true' || value === true)
