@@ -37,6 +37,10 @@ export class ProdutosController {
     @Body() createProdutoDto: CreateProdutoDto,
     @UploadedFile() image?: Express.Multer.File
   ) {
+    if (!image) {
+      throw new BadRequestException('Imagem é obrigatória para criar um produto');
+    }
+    
     const produto = await this.produtosService.create(createProdutoDto, image);
     return {
       message: 'Produto criado com sucesso',

@@ -12,7 +12,7 @@ export class Produto extends Document {
   @Prop({ required: true }) 
   slug: string;
 
-  @Prop({ required: false })
+  @Prop({ required: true })
   image: string;
 
   @Prop({ required: true, type: Number })

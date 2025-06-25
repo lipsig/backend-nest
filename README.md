@@ -6,11 +6,11 @@ Um sistema CRUD completo para gerenciamento de produtos desenvolvido com NestJS,
 
 Este projeto é uma API RESTful robusta que permite criar, listar, atualizar e remover produtos. Inclui funcionalidades avançadas como:
 
-- Upload e processamento de imagens com recorte automático (1:1)
-- Paginação, filtros e ordenação
-- Validação completa de dados
-- **Validação de nomes únicos por loja** (produtos com mesmo nome podem existir em lojas diferentes)
-- Testes unitários e end-to-end
+- **Upload e processamento de imagens obrigatórias** com recorte automático (1:1)
+- Paginação, filtros e ordenação avançados
+- Validação completa de dados com mensagens em português
+- **Sistema multi-loja** com validação de nomes únicos por contexto
+- Testes unitários e end-to-end completos
 - MongoDB em memória para desenvolvimento
 - Tratamento global de erros
 
@@ -99,133 +99,259 @@ npm run test:cov
 http://localhost:3000
 ```
 
-### Endpoints
+## 🔗 Endpoints Disponíveis
 
-#### 📝 Produtos
+| Método | Endpoint | Descrição | Imagem |
+|--------|----------|-----------|---------|
+| `POST` | `/produtos` | Criar novo produto | **Obrigatória** |
+| `GET` | `/produtos` | Listar produtos (paginado) | - |
+| `GET` | `/produtos/:id` | Buscar produto específico | - |
+| `PUT` | `/produtos/:id` | Atualizar produto | Opcional |
+| `DELETE` | `/produtos/:id` | Remover produto | - |
 
-| Método | Endpoint | Descrição |
-|--------|----------|-----------|
-| `GET` | `/produtos` | Lista todos os produtos (paginado) |
-| `GET` | `/produtos/:id` | Busca produto por ID |
-| `POST` | `/produtos` | Cria novo produto |
-| `PUT` | `/produtos/:id` | Atualiza produto |
-| `DELETE` | `/produtos/:id` | Remove produto |
+---
 
-#### GET /produtos
+## 📝 POST /produtos - Criar Produto
 
-**Parâmetros de Query:**
-- `page` (number): Página atual (padrão: 1)
-- `limit` (number): Itens por página (padrão: 10)
-- `category` (string): Filtrar por categoria
-- `storeId` (string): Filtrar por loja específica
-- `available` (boolean): Filtrar por disponibilidade
-- `sortBy` (string): Campo para ordenação (name, price, rating, createdAt, category)
-- `sortOrder` (string): Ordem (asc, desc)
+### Campos Obrigatórios
 
-**Exemplos:**
+| Campo | Tipo | Validação | Descrição |
+|-------|------|-----------|-----------|
+| `name` | string | 3-100 caracteres | Nome do produto |
+| `description` | string | 10-500 caracteres | Descrição detalhada |
+| `price` | number | Positivo, 2 casas decimais | Preço em reais |
+| `category` | string | 2-50 caracteres | Categoria do produto |
+| `image` | file | JPG, JPEG, PNG, GIF (máx 5MB) | **Imagem obrigatória** |
+
+### Campos Opcionais
+
+| Campo | Tipo | Padrão | Validação | Descrição |
+|-------|------|--------|-----------|-----------|
+| `available` | boolean | `true` | - | Produto disponível |
+| `preparationTime` | number | `0` | ≥ 0 | Tempo preparo (minutos) |
+| `ingredients` | string | - | - | Lista de ingredientes |
+| `allergens` | string | - | - | Informações de alérgenos |
+| `calories` | number | `0` | ≥ 0 | Calorias do produto |
+| `rating` | number | `0` | 0-5, 2 casas decimais | Avaliação média |
+| `reviewCount` | number | `0` | ≥ 0 | Número de avaliações |
+| `storeId` | string | - | - | ID da loja (se não informado = produto global) |
+
+### Exemplo de Requisição
+
 ```bash
-# Filtrar por categoria
-GET /produtos?page=1&limit=10&category=pizza&available=true&sortBy=price&sortOrder=asc
-
-# Filtrar por loja específica
-GET /produtos?storeId=loja-centro&available=true
-
-# Combinar filtros
-GET /produtos?storeId=loja-shopping&category=pizza&available=true&page=1&limit=5
-
-# Listar todos os produtos globais (sem loja)
-GET /produtos?storeId=null
+curl -X POST http://localhost:3000/produtos \
+  -F "name=Pizza Margherita" \
+  -F "description=Pizza clássica com molho de tomate, mussarela e manjericão" \
+  -F "price=25.90" \
+  -F "category=Pizza" \
+  -F "available=true" \
+  -F "preparationTime=20" \
+  -F "ingredients=Molho de tomate, mussarela, manjericão" \
+  -F "storeId=loja-001" \
+  -F "image=@pizza.jpg"
 ```
 
-**Resposta:**
+### Resposta de Sucesso
+
 ```json
 {
-  "produtos": [...],
+  "message": "Produto criado com sucesso",
+  "data": {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "Pizza Margherita",
+    "description": "Pizza clássica com molho de tomate, mussarela e manjericão",
+    "slug": "pizza-margherita",
+    "price": 25.90,
+    "category": "pizza",
+    "available": true,
+    "preparationTime": 20,
+    "ingredients": "Molho de tomate, mussarela, manjericão",
+    "storeId": "loja-001",
+    "image": "/uploads/1640995200000-123456789.jpg",
+    "calories": 0,
+    "rating": 0,
+    "reviewCount": 0,
+    "createdAt": "2023-12-31T23:59:59.000Z",
+    "updatedAt": "2023-12-31T23:59:59.000Z"
+  }
+}
+```
+
+---
+
+## 📋 GET /produtos - Listar Produtos
+
+### Parâmetros de Query (Todos Opcionais)
+
+| Parâmetro | Tipo | Padrão | Descrição |
+|-----------|------|--------|-----------|
+| `page` | number | `1` | Página atual |
+| `limit` | number | `10` | Itens por página |
+| `category` | string | - | Filtrar por categoria |
+| `storeId` | string | - | Filtrar por loja específica |
+| `available` | boolean | - | Filtrar por disponibilidade |
+| `sortBy` | string | `createdAt` | Campo para ordenação (`name`, `price`, `rating`, `createdAt`, `category`) |
+| `sortOrder` | string | `desc` | Ordem (`asc`, `desc`) |
+
+### Exemplos de Uso
+
+```bash
+# Listar todos os produtos (paginação padrão)
+GET /produtos
+
+# Filtrar por categoria e disponibilidade
+GET /produtos?category=pizza&available=true&page=1&limit=5
+
+# Produtos de uma loja específica
+GET /produtos?storeId=loja-centro&sortBy=price&sortOrder=asc
+
+# Combinar múltiplos filtros
+GET /produtos?storeId=loja-shopping&category=bebidas&available=true&page=2&limit=20
+```
+
+### Resposta
+
+```json
+{
+  "produtos": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "Pizza Margherita",
+      "price": 25.90,
+      "category": "pizza",
+      "available": true,
+      "storeId": "loja-001",
+      "image": "/uploads/1640995200000-123456789.jpg"
+    }
+  ],
   "total": 50,
   "pages": 5
 }
 ```
 
-#### POST /produtos
+---
 
-**Body (multipart/form-data):**
+## 🔍 GET /produtos/:id - Buscar Produto
+
+### Parâmetros
+
+| Parâmetro | Tipo | Descrição |
+|-----------|------|-----------|
+| `id` | string | ID único do produto |
+
+### Exemplo
+
+```bash
+GET /produtos/507f1f77bcf86cd799439011
+```
+
+---
+
+## ✏️ PUT /produtos/:id - Atualizar Produto
+
+### Campos (Todos Opcionais)
+
+Todos os campos são opcionais na atualização. Apenas os campos enviados serão atualizados.
+
+| Campo | Validação | Observação |
+|-------|-----------|------------|
+| `name` | 3-100 caracteres | Gera novo slug automaticamente |
+| `description` | 10-500 caracteres | - |
+| `price` | Positivo, 2 casas decimais | - |
+| `category` | 2-50 caracteres | - |
+| `available` | boolean | - |
+| `preparationTime` | ≥ 0 | - |
+| `ingredients` | string | - |
+| `allergens` | string | - |
+| `calories` | ≥ 0 | - |
+| `rating` | 0-5, 2 casas decimais | - |
+| `reviewCount` | ≥ 0 | - |
+| `storeId` | string | - |
+| `image` | file (JPG, JPEG, PNG, GIF) | **Substitui imagem anterior** |
+
+### Exemplo
+
+```bash
+curl -X PUT http://localhost:3000/produtos/507f1f77bcf86cd799439011 \
+  -F "price=29.90" \
+  -F "available=false" \
+  -F "image=@nova-imagem.jpg"
+```
+
+---
+
+## 🗑️ DELETE /produtos/:id - Remover Produto
+
+### Exemplo
+
+```bash
+DELETE /produtos/507f1f77bcf86cd799439011
+```
+
+### Resposta
+
 ```json
 {
-  "name": "Pizza Margherita",
-  "description": "Pizza clássica com molho de tomate, mussarela e manjericão",
-  "price": 25.90,
-  "category": "Pizza",
-  "preparationTime": 20,
-  "ingredients": "Molho de tomate, mussarela, manjericão",
-  "available": true,
-  "storeId": "loja-001"
+  "message": "Produto \"Pizza Margherita\" removido com sucesso"
 }
 ```
 
-**Arquivo:**
-- `image` (file): Imagem do produto (opcional)
-
-#### PUT /produtos/:id
-
-**Body (multipart/form-data):**
-```json
-{
-  "name": "Pizza Margherita Premium",
-  "price": 29.90,
-  "storeId": "loja-001"
-}
-```
-
-#### Validações
-
-**Campos Obrigatórios:**
-- `name`: 3-100 caracteres
-- `description`: 10-500 caracteres  
-- `price`: Número positivo
-- `category`: 2-50 caracteres
-
-**Campos Opcionais:**
-- `storeId`: Identificador da loja (quando não informado, produto é global)
-
-**Regras de Negócio:**
-- ✅ **Nomes únicos por loja**: Produtos não podem ter o mesmo nome dentro da mesma loja
-- ✅ **Nomes duplicados entre lojas**: Produtos podem ter o mesmo nome se pertencerem a lojas diferentes
-- ✅ **Produtos globais**: Produtos sem `storeId` devem ter nomes únicos globalmente
-- ✅ **Slugs únicos**: Geração automática de slugs únicos por contexto (loja ou global)
+---
 
 ## 🏪 Sistema Multi-Loja
 
-### Como Funciona
+### Regras de Negócio
 
-O sistema suporta produtos tanto globais quanto específicos de loja:
+| Cenário | Regra |
+|---------|-------|
+| **Produto com `storeId`** | Nome único apenas dentro da mesma loja |
+| **Produto sem `storeId`** | Nome único globalmente |
+| **Slugs** | Únicos por contexto (loja ou global) |
 
-#### Produtos com `storeId`
-- Devem ter nomes únicos **apenas dentro da mesma loja**
-- Podem repetir nomes de produtos de outras lojas
-- Slug é único por loja
-- **Podem ser filtrados por loja específica**
-
-#### Produtos sem `storeId` (globais)
-- Devem ter nomes únicos **globalmente**
-- Não podem repetir nomes de outros produtos globais
-- Slug é único globalmente
-- **Aparecem em todas as consultas quando não há filtro de loja**
-
-### Filtros Disponíveis
+### Exemplos Práticos
 
 ```bash
-# Listar produtos de uma loja específica
+# ✅ PERMITIDO: Mesmo nome em lojas diferentes
+POST /produtos -F "name=Pizza Margherita" -F "storeId=loja-A" -F "image=@img1.jpg"
+POST /produtos -F "name=Pizza Margherita" -F "storeId=loja-B" -F "image=@img2.jpg"
+
+# ❌ ERRO: Mesmo nome na mesma loja
+POST /produtos -F "name=Pizza Margherita" -F "storeId=loja-A" -F "image=@img3.jpg"
+# Retorna: "Já existe um produto com esse nome nesta loja"
+
+# ✅ PERMITIDO: Produto global
+POST /produtos -F "name=Produto Especial" -F "image=@img4.jpg"
+
+# ❌ ERRO: Mesmo nome global
+POST /produtos -F "name=Produto Especial" -F "image=@img5.jpg"
+# Retorna: "Já existe um produto com esse nome"
+```
+
+### Filtros por Loja
+
+```bash
+# Produtos de uma loja específica
 GET /produtos?storeId=loja-centro
 
-# Combinar com outros filtros
-GET /produtos?storeId=loja-shopping&category=pizza&available=true
+# Produtos globais (sem loja)
+GET /produtos?storeId=null
 
-# Listar apenas produtos disponíveis de uma loja
-GET /produtos?storeId=loja-norte&available=true&sortBy=price&sortOrder=asc
-
-# Produtos de uma categoria em uma loja específica
-GET /produtos?storeId=loja-sul&category=bebidas&page=1&limit=20
+# Todos os produtos (globais + todas as lojas)
+GET /produtos
 ```
+
+---
+
+## ⚠️ Mensagens de Erro Comuns
+
+| Erro | Mensagem |
+|------|----------|
+| Nome duplicado (mesma loja) | "Já existe um produto com esse nome nesta loja" |
+| Nome duplicado (global) | "Já existe um produto com esse nome" |
+| Imagem obrigatória | "Imagem é obrigatória para criar um produto" |
+| Arquivo inválido | "Apenas arquivos de imagem são permitidos" |
+| Produto não encontrado | "Produto #ID não encontrado" |
+| Validação de campo | Mensagens específicas por campo em português |
 
 ## 🧪 Testes
 
@@ -314,71 +440,53 @@ MONGODB_URI=mongodb://localhost:27017/produtos
 }
 ```
 
-## 📝 Exemplos de Uso
+## 📝 Exemplos Completos
 
-### Criar Produto com Imagem
-
-```bash
-curl -X POST http://localhost:3000/produtos \
-  -F "name=Pizza Margherita" \
-  -F "description=Pizza clássica italiana" \
-  -F "price=25.90" \
-  -F "category=Pizza" \
-  -F "image=@pizza.jpg"
-```
-
-### Criar Produto com Loja Específica
+### Criar Produto em Loja Específica
 
 ```bash
 curl -X POST http://localhost:3000/produtos \
-  -F "name=Pizza Margherita" \
-  -F "description=Pizza clássica italiana" \
-  -F "price=25.90" \
-  -F "category=Pizza" \
+  -F "name=X-Bacon Duplo" \
+  -F "description=Hambúrguer artesanal com dois hamburguers, bacon crocante e queijo cheddar" \
+  -F "price=32.90" \
+  -F "category=Hambúrguer" \
+  -F "available=true" \
+  -F "preparationTime=25" \
+  -F "ingredients=Pão brioche, 2 hambúrguers 120g, bacon, queijo cheddar, alface, tomate" \
+  -F "allergens=Glúten, leite" \
+  -F "calories=850" \
   -F "storeId=loja-centro" \
-  -F "image=@pizza.jpg"
+  -F "image=@xbacon.jpg"
 ```
 
-### Criar Produto com Mesmo Nome em Loja Diferente
+### Criar Produto Global
 
 ```bash
 curl -X POST http://localhost:3000/produtos \
-  -F "name=Pizza Margherita" \
-  -F "description=Pizza da filial shopping" \
-  -F "price=27.90" \
-  -F "category=Pizza" \
-  -F "storeId=loja-shopping" \
-  -F "image=@pizza2.jpg"
+  -F "name=Refrigerante Coca-Cola 350ml" \
+  -F "description=Refrigerante tradicional gelado" \
+  -F "price=4.50" \
+  -F "category=Bebidas" \
+  -F "available=true" \
+  -F "calories=140" \
+  -F "image=@coca.jpg"
 ```
 
-### Criar Produto Global (sem loja)
+### Atualizar Apenas Preço
 
 ```bash
-curl -X POST http://localhost:3000/produtos \
-  -F "name=Produto Especial" \
-  -F "description=Produto disponível em todas as lojas" \
-  -F "price=15.90" \
-  -F "category=Especiais"
+curl -X PUT http://localhost:3000/produtos/507f1f77bcf86cd799439011 \
+  -F "price=35.90"
 ```
 
-### Listar Produtos com Filtros
+### Buscar com Filtros Avançados
 
 ```bash
-curl "http://localhost:3000/produtos?category=pizza&available=true&page=1&limit=5"
-```
+# Hambúrguers disponíveis, ordenados por preço
+curl "http://localhost:3000/produtos?category=hambúrguer&available=true&sortBy=price&sortOrder=asc"
 
-### Filtrar por Loja Específica
-
-```bash
-curl "http://localhost:3000/produtos?storeId=loja-centro&available=true"
-```
-
-### Atualizar Produto
-
-```bash
-curl -X PUT http://localhost:3000/produtos/123 \
-  -F "price=29.90" \
-  -F "image=@nova-imagem.jpg"
+# Produtos da loja centro, página 2
+curl "http://localhost:3000/produtos?storeId=loja-centro&page=2&limit=15"
 ```
 
 ## 🤝 Contribuição
