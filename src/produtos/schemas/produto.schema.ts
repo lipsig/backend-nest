@@ -9,7 +9,7 @@ export class Produto extends Document {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true }) // Remove unique: true
   slug: string;
 
   @Prop({ required: false })
@@ -72,3 +72,7 @@ ProdutoSchema.pre('findOneAndUpdate', function(next) {
 // índices
 ProdutoSchema.index({ category: 1, available: 1 });
 ProdutoSchema.index({ rating: -1, reviewCount: -1 });
+// Índice composto para garantir nome único por loja
+ProdutoSchema.index({ name: 1, storeId: 1 }, { unique: true });
+// Índice composto para garantir slug único por loja
+ProdutoSchema.index({ slug: 1, storeId: 1 }, { unique: true });

@@ -33,6 +33,9 @@ describe('ProdutosService', () => {
 
   const mockProdutoModel = {
     find: jest.fn().mockReturnValue(mockQuery),
+    findOne: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue(null), // Para checkDuplicateName e slugExists
+    }),
     countDocuments: jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue(1),
     }),

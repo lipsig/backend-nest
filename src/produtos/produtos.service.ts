@@ -15,19 +15,36 @@ export class ProdutosService {
   constructor(@InjectModel(Produto.name) private produtoModel: Model<Produto>) {}
 
   async create(createProdutoDto: CreateProdutoDto, imageFile?: Express.Multer.File): Promise<Produto> {
-    const slug = slugify(createProdutoDto.name, { lower: true });
+    // Verificar se já existe produto com o mesmo nome na mesma loja
+    await this.checkDuplicateName(createProdutoDto.name, createProdutoDto.storeId);
+    
+    const slug = await this.generateUniqueSlug(createProdutoDto.name, createProdutoDto.storeId);
     
     let imageUrl = '';
     if (imageFile) {
       imageUrl = await this.processAndSaveImage(imageFile);
     }
 
-    const createdProduto = new this.produtoModel({
-      ...createProdutoDto,
-      slug,
-      image: imageUrl,
-    });
-    return createdProduto.save();
+    try {
+      const createdProduto = new this.produtoModel({
+        ...createProdutoDto,
+        slug,
+        image: imageUrl,
+      });
+      return createdProduto.save();
+    } catch (error) {
+      // Se a imagem foi processada mas houve erro ao salvar, remover a imagem
+      if (imageUrl) {
+        await this.removeImage(imageUrl);
+      }
+      
+      // Verificar se é erro de duplicata
+      if (error.code === 11000) {
+        throw new BadRequestException('Já existe um produto com esse nome nesta loja');
+      }
+      
+      throw error;
+    }
   }
 
   async findAll(paginationDto?: PaginationDto): Promise<{ produtos: Produto[]; total: number; pages: number }> {
@@ -74,10 +91,23 @@ export class ProdutosService {
   async update(id: string, updateProdutoDto: UpdateProdutoDto, imageFile?: Express.Multer.File): Promise<Produto> {
     const existingProduto = await this.findOne(id);
     
+    // Se o nome está sendo alterado, verificar duplicatas
+    if (updateProdutoDto.name && updateProdutoDto.name !== existingProduto.name) {
+      await this.checkDuplicateName(
+        updateProdutoDto.name, 
+        updateProdutoDto.storeId || existingProduto.storeId,
+        id
+      );
+    }
+    
     const updatedData: any = { ...updateProdutoDto };
 
     if (updateProdutoDto.name) {
-      updatedData.slug = slugify(updateProdutoDto.name, { lower: true });
+      updatedData.slug = await this.generateUniqueSlug(
+        updateProdutoDto.name, 
+        updateProdutoDto.storeId || existingProduto.storeId,
+        id
+      );
     }
 
     if (imageFile) {
@@ -88,15 +118,29 @@ export class ProdutosService {
       updatedData.image = await this.processAndSaveImage(imageFile);
     }
 
-    const updatedProduto = await this.produtoModel
-      .findByIdAndUpdate(id, updatedData, { new: true })
-      .exec();
+    try {
+      const updatedProduto = await this.produtoModel
+        .findByIdAndUpdate(id, updatedData, { new: true })
+        .exec();
 
-    if (!updatedProduto) {
-      throw new NotFoundException(`Produto #${id} não encontrado`);
+      if (!updatedProduto) {
+        throw new NotFoundException(`Produto #${id} não encontrado`);
+      }
+
+      return updatedProduto;
+    } catch (error) {
+      // Se uma nova imagem foi processada mas houve erro ao salvar, remover a nova imagem
+      if (imageFile && updatedData.image) {
+        await this.removeImage(updatedData.image);
+      }
+      
+      // Verificar se é erro de duplicata
+      if (error.code === 11000) {
+        throw new BadRequestException('Já existe um produto com esse nome nesta loja');
+      }
+      
+      throw error;
     }
-
-    return updatedProduto;
   }
 
   async remove(id: string): Promise<{ message: string }> {
@@ -146,6 +190,69 @@ export class ProdutosService {
       await fs.unlink(filepath);
     } catch (error) {
       console.warn(`Não foi possível remover imagem: ${imageUrl}`);
+    }
+  }
+
+  private async generateUniqueSlug(name: string, storeId?: string, excludeId?: string): Promise<string> {
+    const baseSlug = slugify(name, { lower: true });
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (await this.slugExists(slug, storeId, excludeId)) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
+    return slug;
+  }
+
+  private async slugExists(slug: string, storeId?: string, excludeId?: string): Promise<boolean> {
+    const query: any = { slug };
+    
+    if (storeId) {
+      query.storeId = storeId;
+    } else {
+      query.$or = [
+        { storeId: { $exists: false } },
+        { storeId: null }
+      ];
+    }
+    
+    if (excludeId) {
+      query._id = { $ne: excludeId };
+    }
+
+    const existing = await this.produtoModel.findOne(query).exec();
+    return !!existing;
+  }
+
+  private async checkDuplicateName(name: string, storeId?: string, excludeId?: string): Promise<void> {
+    const query: any = { name: { $regex: new RegExp(`^${name}$`, 'i') } };
+    
+    // Se tem storeId, verificar apenas dentro da mesma loja
+    if (storeId) {
+      query.storeId = storeId;
+    } else {
+      // Se não tem storeId, verificar apenas produtos sem storeId
+      query.$or = [
+        { storeId: { $exists: false } },
+        { storeId: null }
+      ];
+    }
+    
+    // Excluir o produto atual se for uma atualização
+    if (excludeId) {
+      query._id = { $ne: excludeId };
+    }
+
+    const existingProduto = await this.produtoModel.findOne(query).exec();
+    
+    if (existingProduto) {
+      if (storeId) {
+        throw new BadRequestException('Já existe um produto com esse nome nesta loja');
+      } else {
+        throw new BadRequestException('Já existe um produto com esse nome');
+      }
     }
   }
 }
