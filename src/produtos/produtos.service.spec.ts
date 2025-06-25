@@ -20,27 +20,41 @@ describe('ProdutosService', () => {
     category: 'Test Category',
     available: true,
     preparationTime: 15,
-    save: jest.fn().mockResolvedValue(this),
   };
 
+  const mockSave = jest.fn().mockResolvedValue(mockProduto);
+
   const mockProdutoModel = {
-    new: jest.fn().mockResolvedValue(mockProduto),
-    constructor: jest.fn().mockResolvedValue(mockProduto),
-    find: jest.fn(),
-    findById: jest.fn(),
-    findByIdAndUpdate: jest.fn(),
-    findByIdAndDelete: jest.fn(),
-    exec: jest.fn(),
-    save: jest.fn(),
+    find: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue([mockProduto]),
+    }),
+    findById: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue(mockProduto),
+    }),
+    findByIdAndUpdate: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue(mockProduto),
+    }),
+    findByIdAndDelete: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue(mockProduto),
+    }),
   };
 
   beforeEach(async () => {
+    const mockModel = function (dto) {
+      return {
+        ...dto,
+        save: mockSave,
+      };
+    };
+
+    Object.assign(mockModel, mockProdutoModel); // adiciona os métodos estáticos (find, findById, etc.)
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProdutosService,
         {
           provide: getModelToken(Produto.name),
-          useValue: mockProdutoModel,
+          useValue: mockModel,
         },
       ],
     }).compile();
@@ -66,41 +80,24 @@ describe('ProdutosService', () => {
         category: 'Test Category',
       };
 
-      const saveSpy = jest.fn().mockResolvedValue(mockProduto);
-      const constructorSpy = jest.spyOn(model, 'constructor' as any).mockImplementation(() => ({
-        save: saveSpy,
-      }));
-
       const result = await service.create(createProdutoDto);
 
-      expect(constructorSpy).toHaveBeenCalledWith({
-        ...createProdutoDto,
-        slug: 'test-product',
-      });
-      expect(saveSpy).toHaveBeenCalled();
+      expect(mockSave).toHaveBeenCalled();
+      expect(result).toEqual(mockProduto);
     });
   });
 
   describe('findAll', () => {
     it('should return an array of produtos', async () => {
-      const produtos = [mockProduto];
-      jest.spyOn(model, 'find').mockReturnValue({
-        exec: jest.fn().mockResolvedValue(produtos),
-      } as any);
-
       const result = await service.findAll();
 
       expect(model.find).toHaveBeenCalled();
-      expect(result).toEqual(produtos);
+      expect(result).toEqual([mockProduto]);
     });
   });
 
   describe('findOne', () => {
     it('should return a produto by id', async () => {
-      jest.spyOn(model, 'findById').mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockProduto),
-      } as any);
-
       const result = await service.findOne('mockId');
 
       expect(model.findById).toHaveBeenCalledWith('mockId');
@@ -108,7 +105,7 @@ describe('ProdutosService', () => {
     });
 
     it('should throw NotFoundException when produto not found', async () => {
-      jest.spyOn(model, 'findById').mockReturnValue({
+      jest.spyOn(model, 'findById').mockReturnValueOnce({
         exec: jest.fn().mockResolvedValue(null),
       } as any);
 
@@ -124,8 +121,7 @@ describe('ProdutosService', () => {
       };
 
       const updatedProduto = { ...mockProduto, ...updateProdutoDto, slug: 'updated-product' };
-
-      jest.spyOn(model, 'findByIdAndUpdate').mockReturnValue({
+      jest.spyOn(model, 'findByIdAndUpdate').mockReturnValueOnce({
         exec: jest.fn().mockResolvedValue(updatedProduto),
       } as any);
 
@@ -139,10 +135,30 @@ describe('ProdutosService', () => {
       expect(result).toEqual(updatedProduto);
     });
 
+    it('should update a produto without changing slug when name is not provided', async () => {
+      const updateProdutoDto: UpdateProdutoDto = {
+        price: 15.99,
+      };
+
+      const updatedProduto = { ...mockProduto, ...updateProdutoDto };
+      jest.spyOn(model, 'findByIdAndUpdate').mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(updatedProduto),
+      } as any);
+
+      const result = await service.update('mockId', updateProdutoDto);
+
+      expect(model.findByIdAndUpdate).toHaveBeenCalledWith(
+        'mockId',
+        updateProdutoDto,
+        { new: true }
+      );
+      expect(result).toEqual(updatedProduto);
+    });
+
     it('should throw NotFoundException when produto not found', async () => {
       const updateProdutoDto: UpdateProdutoDto = { price: 15.99 };
 
-      jest.spyOn(model, 'findByIdAndUpdate').mockReturnValue({
+      jest.spyOn(model, 'findByIdAndUpdate').mockReturnValueOnce({
         exec: jest.fn().mockResolvedValue(null),
       } as any);
 
@@ -152,17 +168,13 @@ describe('ProdutosService', () => {
 
   describe('remove', () => {
     it('should remove a produto', async () => {
-      jest.spyOn(model, 'findByIdAndDelete').mockReturnValue({
-        exec: jest.fn().mockResolvedValue(mockProduto),
-      } as any);
-
       await service.remove('mockId');
 
       expect(model.findByIdAndDelete).toHaveBeenCalledWith('mockId');
     });
 
     it('should throw NotFoundException when produto not found', async () => {
-      jest.spyOn(model, 'findByIdAndDelete').mockReturnValue({
+      jest.spyOn(model, 'findByIdAndDelete').mockReturnValueOnce({
         exec: jest.fn().mockResolvedValue(null),
       } as any);
 
