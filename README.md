@@ -117,13 +117,24 @@ http://localhost:3000
 - `page` (number): Página atual (padrão: 1)
 - `limit` (number): Itens por página (padrão: 10)
 - `category` (string): Filtrar por categoria
+- `storeId` (string): Filtrar por loja específica
 - `available` (boolean): Filtrar por disponibilidade
 - `sortBy` (string): Campo para ordenação (name, price, rating, createdAt, category)
 - `sortOrder` (string): Ordem (asc, desc)
 
-**Exemplo:**
+**Exemplos:**
 ```bash
+# Filtrar por categoria
 GET /produtos?page=1&limit=10&category=pizza&available=true&sortBy=price&sortOrder=asc
+
+# Filtrar por loja específica
+GET /produtos?storeId=loja-centro&available=true
+
+# Combinar filtros
+GET /produtos?storeId=loja-shopping&category=pizza&available=true&page=1&limit=5
+
+# Listar todos os produtos globais (sem loja)
+GET /produtos?storeId=null
 ```
 
 **Resposta:**
@@ -181,6 +192,40 @@ GET /produtos?page=1&limit=10&category=pizza&available=true&sortBy=price&sortOrd
 - ✅ **Nomes duplicados entre lojas**: Produtos podem ter o mesmo nome se pertencerem a lojas diferentes
 - ✅ **Produtos globais**: Produtos sem `storeId` devem ter nomes únicos globalmente
 - ✅ **Slugs únicos**: Geração automática de slugs únicos por contexto (loja ou global)
+
+## 🏪 Sistema Multi-Loja
+
+### Como Funciona
+
+O sistema suporta produtos tanto globais quanto específicos de loja:
+
+#### Produtos com `storeId`
+- Devem ter nomes únicos **apenas dentro da mesma loja**
+- Podem repetir nomes de produtos de outras lojas
+- Slug é único por loja
+- **Podem ser filtrados por loja específica**
+
+#### Produtos sem `storeId` (globais)
+- Devem ter nomes únicos **globalmente**
+- Não podem repetir nomes de outros produtos globais
+- Slug é único globalmente
+- **Aparecem em todas as consultas quando não há filtro de loja**
+
+### Filtros Disponíveis
+
+```bash
+# Listar produtos de uma loja específica
+GET /produtos?storeId=loja-centro
+
+# Combinar com outros filtros
+GET /produtos?storeId=loja-shopping&category=pizza&available=true
+
+# Listar apenas produtos disponíveis de uma loja
+GET /produtos?storeId=loja-norte&available=true&sortBy=price&sortOrder=asc
+
+# Produtos de uma categoria em uma loja específica
+GET /produtos?storeId=loja-sul&category=bebidas&page=1&limit=20
+```
 
 ## 🧪 Testes
 

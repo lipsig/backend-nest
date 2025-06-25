@@ -48,12 +48,13 @@ export class ProdutosService {
   }
 
   async findAll(paginationDto?: PaginationDto): Promise<{ produtos: Produto[]; total: number; pages: number }> {
-    const { page = 1, limit = 10, category, available, sortBy = 'createdAt', sortOrder = 'desc' } = paginationDto || {};
+    const { page = 1, limit = 10, category, available, storeId, sortBy = 'createdAt', sortOrder = 'desc' } = paginationDto || {};
     
     const skip = (page - 1) * limit;
     const query: any = {};
     
     if (category) query.category = category.toLowerCase();
+    if (storeId) query.storeId = storeId;
     if (available !== undefined) {
 
       let isAvailable: boolean;

@@ -19,6 +19,10 @@ export class PaginationDto {
   category?: string;
 
   @IsOptional()
+  @IsString()
+  storeId?: string;
+
+  @IsOptional()
   @Transform(({ value }) => {
     if (value === 'true') return true;
     if (value === 'false') return false;

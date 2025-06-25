@@ -9,7 +9,7 @@ export class Produto extends Document {
   @Prop({ required: true })
   description: string;
 
-  @Prop({ required: true }) // Remove unique: true
+  @Prop({ required: true }) 
   slug: string;
 
   @Prop({ required: false })
