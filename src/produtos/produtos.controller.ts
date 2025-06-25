@@ -33,11 +33,15 @@ export class ProdutosController {
     },
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB
   }))
-  create(
+  async create(
     @Body() createProdutoDto: CreateProdutoDto,
     @UploadedFile() image?: Express.Multer.File
   ) {
-    return this.produtosService.create(createProdutoDto, image);
+    const produto = await this.produtosService.create(createProdutoDto, image);
+    return {
+      message: 'Produto criado com sucesso',
+      data: produto
+    };
   }
 
   @Get()
@@ -61,12 +65,16 @@ export class ProdutosController {
     },
     limits: { fileSize: 5 * 1024 * 1024 } // 5MB
   }))
-  update(
+  async update(
     @Param('id') id: string, 
     @Body() updateProdutoDto: UpdateProdutoDto,
     @UploadedFile() image?: Express.Multer.File
   ) {
-    return this.produtosService.update(id, updateProdutoDto, image);
+    const produto = await this.produtosService.update(id, updateProdutoDto, image);
+    return {
+      message: 'Produto atualizado com sucesso',
+      data: produto
+    };
   }
 
   @Delete(':id')
