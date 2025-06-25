@@ -99,7 +99,8 @@ export class ProdutosService {
     return updatedProduto;
   }
 
-  async remove(id: string): Promise<void> {
+  async remove(id: string): Promise<{ message: string }> {
+    // Verificar se o item existe antes de remover
     const produto = await this.findOne(id);
     
     // Remove imagem se existir
@@ -109,8 +110,10 @@ export class ProdutosService {
 
     const result = await this.produtoModel.findByIdAndDelete(id).exec();
     if (!result) {
-      throw new NotFoundException(`Produto #${id} não encontrado`);
+      throw new NotFoundException(`Produto #${id} não encontrado para remoção`);
     }
+
+    return { message: `Produto "${produto.name}" removido com sucesso` };
   }
 
   private async processAndSaveImage(file: Express.Multer.File): Promise<string> {
