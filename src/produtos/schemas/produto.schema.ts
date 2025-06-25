@@ -51,4 +51,3 @@ export const ProdutoSchema = SchemaFactory.createForClass(Produto);
 // índices
 ProdutoSchema.index({ category: 1, available: 1 });
 ProdutoSchema.index({ rating: -1, reviewCount: -1 });
-ProdutoSchema.index({ slug: 1 });
