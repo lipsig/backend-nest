@@ -48,6 +48,27 @@ export class Produto extends Document {
 
 export const ProdutoSchema = SchemaFactory.createForClass(Produto);
 
+// Middleware para converter categoria para lowercase antes de salvar
+ProdutoSchema.pre('save', function(next) {
+  if (this.category) {
+    this.category = this.category.toLowerCase();
+  }
+  next();
+});
+
+ProdutoSchema.pre('findOneAndUpdate', function(next) {
+  const update = this.getUpdate();
+
+  if (update && typeof update === 'object' && !Array.isArray(update)) {
+    if (update.category) {
+      update.category = update.category.toLowerCase();
+    } else if (update.$set && update.$set.category) {
+      update.$set.category = update.$set.category.toLowerCase();
+    }
+  }
+  next();
+});
+
 // índices
 ProdutoSchema.index({ category: 1, available: 1 });
 ProdutoSchema.index({ rating: -1, reviewCount: -1 });
