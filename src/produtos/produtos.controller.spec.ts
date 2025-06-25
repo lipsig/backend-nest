@@ -74,7 +74,7 @@ describe('ProdutosController', () => {
       const produtos = [mockProduto];
       mockProdutosService.findAll.mockResolvedValue(produtos);
 
-      const result = await controller.findAll();
+      const result = await controller.findAll({} as any);
 
       expect(service.findAll).toHaveBeenCalled();
       expect(result).toEqual(produtos);
