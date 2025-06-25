@@ -36,8 +36,19 @@ export class ProdutosService {
     const skip = (page - 1) * limit;
     const query: any = {};
     
-    if (category) query.category = category;
-    if (available !== undefined) query.available = available;
+    if (category) query.category = category.toLowerCase();
+    if (available !== undefined) {
+
+      let isAvailable: boolean;
+      if (typeof available === 'string') {
+        isAvailable = (available as string).toLowerCase() === 'true';
+      } else if (typeof available === 'boolean') {
+        isAvailable = available;
+      } else {
+        isAvailable = Boolean(available);
+      }
+      query.available = isAvailable;
+    }
 
     const sortOptions: any = {};
     sortOptions[sortBy] = sortOrder === 'asc' ? 1 : -1;
@@ -131,7 +142,6 @@ export class ProdutosService {
       const filepath = path.join(process.cwd(), 'uploads', filename);
       await fs.unlink(filepath);
     } catch (error) {
-      // Log error but don't throw - image might not exist
       console.warn(`Não foi possível remover imagem: ${imageUrl}`);
     }
   }
