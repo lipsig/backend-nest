@@ -1,14 +1,14 @@
 type: collection.insomnia.rest/5.0
 name: Collection
 meta:
-  id: wrk_1940e802f78f471eab5cad3af473211f
-  created: 1750831056647
-  modified: 1750831056647
+  id: wrk_7656f6e56330425086af4e39d21f4b44
+  created: 1750838520159
+  modified: 1750838520159
   description: ""
 collection:
   - name: Paginação e Filtros
     meta:
-      id: fld_7c308c4cafd54a339fa3d6d58ffd2f4c
+      id: fld_0981144d667042ec88ac377f959ba3d4
       created: 1750835522815
       modified: 1750835525201
       sortKey: -875415992862.5
@@ -17,13 +17,16 @@ collection:
       - url: http://localhost:3000/produtos?page=1&limit=2
         name: Listar - Paginação simples
         meta:
-          id: req_502f6c0165cb48c98db83c8e780bcbb8
+          id: req_3aa76f5300c84767a67e7e5a21062a25
           created: 1750835393623
           modified: 1750836022777
           isPrivate: false
           description: ""
           sortKey: -1750835532394
         method: GET
+        scripts:
+          preRequest: ""
+          afterResponse: ""
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -35,13 +38,16 @@ collection:
       - url: http://localhost:3000/produtos?category=Pizza&page=1&limit=3
         name: Listar - Filtro por Categoria
         meta:
-          id: req_fb5d98f1064b494f88fceea81bdca67c
+          id: req_c9aaaca7660144d7bf9b253e39b08300
           created: 1750835393629
           modified: 1750836803719
           isPrivate: false
           description: ""
           sortKey: -1750835532094
         method: GET
+        scripts:
+          preRequest: ""
+          afterResponse: ""
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -53,13 +59,16 @@ collection:
       - url: http://localhost:3000/produtos?available=false
         name: Listar - Apenas disponíveis
         meta:
-          id: req_9236660513fd4bb098c5e98c9610147d
+          id: req_97fc562f29da4b15ba564435370d09aa
           created: 1750835393631
           modified: 1750836721141
           isPrivate: false
           description: ""
           sortKey: -1750835532294
         method: GET
+        scripts:
+          preRequest: ""
+          afterResponse: ""
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -71,13 +80,16 @@ collection:
       - url: http://localhost:3000/produtos?sortBy=price&sortOrder=asc
         name: Listar - Ordenado por preço crescente
         meta:
-          id: req_9e18013aec4143e895ec416e24628d54
+          id: req_e4e7dcf1ec5e4952824368c345a5d541
           created: 1750835393633
           modified: 1750836157288
           isPrivate: false
           description: ""
           sortKey: -1750835532056.5
         method: GET
+        scripts:
+          preRequest: ""
+          afterResponse: ""
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -89,13 +101,16 @@ collection:
       - url: http://localhost:3000/produtos?sortBy=rating&sortOrder=desc
         name: Listar - Ordenado por rating decrescente
         meta:
-          id: req_6570a9fcac824e7588c634f02256cb5c
+          id: req_97042663a5004580807171383f52211d
           created: 1750835393636
           modified: 1750836163419
           isPrivate: false
           description: ""
           sortKey: -1750835532069
         method: GET
+        scripts:
+          preRequest: ""
+          afterResponse: ""
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -107,13 +122,16 @@ collection:
       - url: http://localhost:3000/produtos?category=Lanches&available=true&sortBy=price&sortOrder=asc&page=1&limit=5
         name: Listar (Combinado) Categoria + disponíveis + ordenados por preço
         meta:
-          id: req_be15cce878b047dfa02f132f88e0b52c
+          id: req_244ec03de37449d09fa4422fa87e8e8e
           created: 1750835393638
           modified: 1750836050293
           isPrivate: false
           description: ""
           sortKey: -1750835532044
         method: GET
+        scripts:
+          preRequest: ""
+          afterResponse: ""
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -125,13 +143,16 @@ collection:
       - url: http://localhost:3000/produtos?available=false&sortBy=name&sortOrder=asc
         name: Listar (Combinado) Indisponíveis ordenados por nome
         meta:
-          id: req_09253403244c4533a777d47953e570e9
+          id: req_a2e99dd6b57443ce8b19f4d3d5eb1780
           created: 1750835393641
           modified: 1750836783664
           isPrivate: false
           description: ""
           sortKey: -1750835531994
         method: GET
+        scripts:
+          preRequest: ""
+          afterResponse: ""
         settings:
           renderRequestBody: true
           encodeUrl: true
@@ -140,16 +161,46 @@ collection:
             send: true
             store: true
           rebuildPath: true
+      - url: http://localhost:3000/produtos?storeId=store126
+        name: Listar - Filtro por Store ID
+        meta:
+          id: req_fc6bf7d3ca4b4b7585352e45140092e1
+          created: 1750839592065
+          modified: 1750839799599
+          isPrivate: false
+          description: ""
+          sortKey: -1750835532194
+        method: GET
+        parameters:
+          - id: pair_caccfcb60b374292be2cdac9f857c939
+            name: ""
+            value: ""
+            description: ""
+            disabled: false
+        settings:
+          renderRequestBody: true
+          encodeUrl: true
+          followRedirects: global
+          cookies:
+            send: true
+            store: true
+          rebuildPath: true
+    scripts:
+      afterResponse: ""
+      preRequest: ""
   - url: http://localhost:3000/produtos
     name: Listar todos os produtos
     meta:
-      id: req_f1d5db8bed4744d18f0e4f026697f127
+      id: req_198050b64612455ba937913600365a5b
       created: 1750831791739
       modified: 1750832020850
       isPrivate: false
       description: ""
       sortKey: -1750831978825
     method: GET
+    scripts:
+      preRequest: ""
+      afterResponse: ""
     settings:
       renderRequestBody: true
       encodeUrl: true
@@ -161,13 +212,16 @@ collection:
   - url: http://localhost:3000/produtos/685b9f112be22c0a91f714a1
     name: Buscar produto por ID
     meta:
-      id: req_08e2a607bfce4f1baab11d2632116316
+      id: req_6dc24a98c2944679a68f3112696e3a3d
       created: 1750831818748
       modified: 1750835023875
       isPrivate: false
       description: ""
       sortKey: -1750831978775
     method: GET
+    scripts:
+      preRequest: ""
+      afterResponse: ""
     settings:
       renderRequestBody: true
       encodeUrl: true
@@ -179,7 +233,7 @@ collection:
   - url: http://localhost:3000/produtos/685ba22b2be22c0a91f714d4
     name: "Atualizar produto "
     meta:
-      id: req_128ef78ad661488d9d4ce3a9173564ba
+      id: req_2378bdd71a484a7884c34a3e3fbfc407
       created: 1750831891927
       modified: 1750836204414
       isPrivate: false
@@ -196,6 +250,9 @@ collection:
     headers:
       - name: Content-Type
         value: application/json
+    scripts:
+      preRequest: ""
+      afterResponse: ""
     settings:
       renderRequestBody: true
       encodeUrl: true
@@ -207,13 +264,16 @@ collection:
   - url: http://localhost:3000/produtos/685b9377deed236f939e00df
     name: Deletar produto
     meta:
-      id: req_9011e194382746eaa0127f5ff90f30a6
+      id: req_93e6483a23eb42e18cd58050f016f918
       created: 1750831978725
       modified: 1750832011976
       isPrivate: false
       description: ""
       sortKey: -1750831978725
     method: DELETE
+    scripts:
+      preRequest: ""
+      afterResponse: ""
     settings:
       renderRequestBody: true
       encodeUrl: true
@@ -225,9 +285,9 @@ collection:
   - url: http://localhost:3000/produtos
     name: Criar Produto
     meta:
-      id: req_cf92fb56613f4e2aa68369ebc447d3a0
+      id: req_a28b70c389264fc69d10b09b30436acc
       created: 1750834772732
-      modified: 1750837987388
+      modified: 1750838977995
       isPrivate: false
       description: ""
       sortKey: -1750834772732
@@ -237,59 +297,63 @@ collection:
       params:
         - name: name
           value: Pizza Tomate
-          type: text
           id: pair_c781d07ff76d4ff9873296fde0d95ebe
+          type: text
         - name: description
           value: Deliciosa pizza italiana com queijo e tomate
-          type: text
           id: pair_356c94a8db974d9ca3b9f89be86978a4
-        - name: price
-          value: "36.50"
           type: text
+        - name: price
+          value: "32.20"
           id: pair_42824175fbe54830b6e83981bd2c6748
+          type: text
         - name: category
           value: pizza
-          type: text
           id: pair_a3d19863a3ab4838a86246b026e2c8ee
+          type: text
         - name: available
           value: "false"
-          type: text
           id: pair_dfdd879bd3c74fa997fef82f2bcaa9ee
+          type: text
         - name: preparationTime
           value: "20"
-          type: text
           id: pair_ef766bfed65b4d7595e463dffc3d798e
+          type: text
         - name: ingredients
           value: Queijo, Tomate, Manjericão
-          type: text
           id: pair_bd227b7b411742068d70f739ce927307
+          type: text
         - name: allergens
           value: Glúten, Lactose
-          type: text
           id: pair_6ed7da2829fd4d88ae9430767b96ae38
+          type: text
         - name: calories
           value: "250"
-          type: text
           id: pair_d3654143005847379ab7b4b153b6befe
+          type: text
         - name: rating
           value: "4.9"
-          type: text
           id: pair_d121f26fd7fa47b2a0ac42c9322149e0
+          type: text
         - name: reviewCount
           value: "10"
-          type: text
           id: pair_e80627d816444d78a0175c2ff7765ec8
-        - name: storeId
-          value: store123
           type: text
+        - name: storeId
+          value: store126
           id: pair_8935de7a68a144f2bd78425d0e2c9d52
+          type: text
         - name: image
+          value: ""
+          id: pair_fda0cab72c8b4044afe58b0ceb734475
           fileName: C:\Users\felip\OneDrive\Imagens\cover.png
           type: file
-          id: pair_fda0cab72c8b4044afe58b0ceb734475
     headers:
       - name: Accept
         value: application/json
+    scripts:
+      preRequest: ""
+      afterResponse: ""
     settings:
       renderRequestBody: true
       encodeUrl: true
@@ -301,13 +365,16 @@ collection:
   - url: http://localhost:3000/uploads/1750837989607-447578722.jpg
     name: Buscar Imagem
     meta:
-      id: req_9c1847d01ad8429c937c2f30fc489791
+      id: req_7af3092b1e474924a7824c042c669dce
       created: 1750835137010
       modified: 1750837999131
       isPrivate: false
       description: ""
       sortKey: -1750833375778.5
     method: GET
+    scripts:
+      preRequest: ""
+      afterResponse: ""
     settings:
       renderRequestBody: true
       encodeUrl: true
@@ -319,13 +386,13 @@ collection:
 cookieJar:
   name: Default Jar
   meta:
-    id: jar_931379a8a1649aad75e1a7a9e3450d7386139293
+    id: jar_0f383eb6b57443f39cf0af8d16f2032a
     created: 1750831056667
     modified: 1750831056667
 environments:
   name: Base Environment
   meta:
-    id: env_931379a8a1649aad75e1a7a9e3450d7386139293
+    id: env_00697b1797ff416790332b3e71c3ec35
     created: 1750831056664
     modified: 1750831056664
     isPrivate: false
