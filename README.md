@@ -54,7 +54,7 @@ uploads/                   # Diretório de imagens
 
 ```bash
 # Clonar o repositório
-git clone <url-do-repositorio>
+git clone https://github.com/lipsig/backend-nest
 cd backend-nest
 
 # Instalar dependências
