@@ -17,16 +17,24 @@ describe('ProdutosService', () => {
     description: 'Test Description',
     slug: 'test-product',
     price: 10.99,
-    category: 'Test Category',
+    category: 'test category',
     available: true,
     preparationTime: 15,
   };
 
   const mockSave = jest.fn().mockResolvedValue(mockProduto);
 
+  const mockQuery = {
+    sort: jest.fn().mockReturnThis(),
+    skip: jest.fn().mockReturnThis(),
+    limit: jest.fn().mockReturnThis(),
+    exec: jest.fn().mockResolvedValue([mockProduto]),
+  };
+
   const mockProdutoModel = {
-    find: jest.fn().mockReturnValue({
-      exec: jest.fn().mockResolvedValue([mockProduto]),
+    find: jest.fn().mockReturnValue(mockQuery),
+    countDocuments: jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue(1),
     }),
     findById: jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue(mockProduto),
@@ -47,7 +55,7 @@ describe('ProdutosService', () => {
       };
     };
 
-    Object.assign(mockModel, mockProdutoModel); // adiciona os métodos estáticos (find, findById, etc.)
+    Object.assign(mockModel, mockProdutoModel);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -88,11 +96,18 @@ describe('ProdutosService', () => {
   });
 
   describe('findAll', () => {
-    it('should return an array of produtos', async () => {
+    it('should return paginated produtos', async () => {
       const result = await service.findAll();
 
       expect(model.find).toHaveBeenCalled();
-      expect(result).toEqual([mockProduto]);
+      expect(mockQuery.sort).toHaveBeenCalled();
+      expect(mockQuery.skip).toHaveBeenCalled();
+      expect(mockQuery.limit).toHaveBeenCalled();
+      expect(result).toEqual({
+        produtos: [mockProduto],
+        total: 1,
+        pages: 1,
+      });
     });
   });
 

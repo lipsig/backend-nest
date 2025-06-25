@@ -15,7 +15,7 @@ describe('ProdutosController', () => {
     description: 'Test Description',
     slug: 'test-product',
     price: 10.99,
-    category: 'Test Category',
+    category: 'test category',
     available: true,
     preparationTime: 15,
   };
@@ -64,20 +64,24 @@ describe('ProdutosController', () => {
 
       const result = await controller.create(createProdutoDto);
 
-      expect(service.create).toHaveBeenCalledWith(createProdutoDto);
+      expect(service.create).toHaveBeenCalledWith(createProdutoDto, undefined);
       expect(result).toEqual(mockProduto);
     });
   });
 
   describe('findAll', () => {
-    it('should return an array of produtos', async () => {
-      const produtos = [mockProduto];
-      mockProdutosService.findAll.mockResolvedValue(produtos);
+    it('should return paginated produtos', async () => {
+      const mockResponse = {
+        produtos: [mockProduto],
+        total: 1,
+        pages: 1,
+      };
+      mockProdutosService.findAll.mockResolvedValue(mockResponse);
 
       const result = await controller.findAll({} as any);
 
       expect(service.findAll).toHaveBeenCalled();
-      expect(result).toEqual(produtos);
+      expect(result).toEqual(mockResponse);
     });
   });
 
@@ -110,7 +114,7 @@ describe('ProdutosController', () => {
 
       const result = await controller.update('mockId', updateProdutoDto);
 
-      expect(service.update).toHaveBeenCalledWith('mockId', updateProdutoDto);
+      expect(service.update).toHaveBeenCalledWith('mockId', updateProdutoDto, undefined);
       expect(result).toEqual(updatedProduto);
     });
 
